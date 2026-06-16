@@ -4,13 +4,16 @@ import duckdb
 
 st.title("Mon Dashboard de Données")
 st.write("Bienvenue sur mon premier dashboard avec Streamlit + DuckDB")
-data ={'a':[1,2,3], 'b':[4,5,6]}
+data ={"a":[1,2,3], "b":[4,5,6]}
 df = pd.DataFrame(data)
-tab1, tab2, tab3 =st.tabs('cat')
+tab1, tab2, tab3 =st.tabs(['cat','Dog','Owl'])
 
 with tab1:
-    sql_query = st.text_area(label='entrez votre text')
+    sql_query: str | None = st.text_area(label='entrez votre input')
     result = duckdb.query(sql_query)
-    st.write(f'vous avez {sql_query}')
+    st.write(f'vous avez entre la query suivante: {sql_query}')
     st.dataframe(result)
-    st.write(df)
+with tab2:
+    st.header('A dog')
+with tab3:
+    st.header('An Owl')
