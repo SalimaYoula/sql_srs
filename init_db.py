@@ -5,10 +5,10 @@ import io
 con = duckdb.connect(database="data/sql_exercice.duckdb", read_only=False)
 
 data = {
-    "theme": ['Cross_Joins','test_ictif'],
-    'exercices_name': ['beverage_and_food','test_ictif'],
-    'tables': [['beverages','food_items'],'test_ictif'],
-    'last_review' : ['1970-01-01',
+    "theme": ['Cross_Joins','Cross_Joins'],
+    'exercices_name': ['beverage_and_food','trademark_and_size'],
+    'tables': [['beverages','food_items'],['sizes','trademarks']],
+    'last_review' : ['1980-01-01',
                      '1970-01-01']
 }
 memory_state_df = pd.DataFrame(data)
@@ -29,3 +29,22 @@ chocolatine,2
 muffin,3"""
 food_items = pd.read_csv(io.StringIO(csv))
 con.execute("create table if not exists food_items as select * from food_items ")
+
+size = '''
+size
+XS
+M
+L
+XL
+'''
+sizes = pd.read_csv(io.StringIO(size))
+con.execute("create table if not exists sizes as select * from sizes ")
+trademark = '''
+trademark
+Nike
+Asphalte
+Abercrombie
+Lewis
+'''
+trademarks = pd.read_csv(io.StringIO(trademark))
+con.execute("create table if not exists trademarks as select * from trademarks ")
