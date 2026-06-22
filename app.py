@@ -1,4 +1,6 @@
+import ast
 import io
+import os
 from unittest import result
 
 import streamlit as st
@@ -6,33 +8,37 @@ import pandas as pd
 import duckdb
 from pandas import DataFrame
 
+from init_db import beverages
+
 st.title("Mon Dashboard de Données")
 st.write("Bienvenue sur mon premier dashboard avec Streamlit + DuckDB")
-csv = """
-beverage,price
-orange juice,2.5
-Expresso,2
-Tea,3
-"""
-beverage = pd.read_csv(io.StringIO(csv))
 
-csv2 = """
-food_item,food_price
-cookie juice,2.5
-chocolatine,2
-muffin,3"""
-food_items = pd.read_csv(io.StringIO(csv))
+path = os.path.abspath("data/sql_exercice.duckdb")
+con = duckdb.connect(database=path, read_only=False)
 
-answer_str = """
-select * from beverage
-cross join food_items"""
+with st.sidebar:
+    option = st.selectbox(
+        "what would you like to do?",
+        ("Cross_Joins", "GroupBy", "Windows Funtions"),
+        index=None,
+        placeholder="Choose your option",
+    )
+    st.write("You selected:", option)
 
-solution_df: DataFrame = duckdb.sql(answer_str).df()
-st.header("enter your code: ")
+    exercice = con.execute(f"select * from memory_state where theme = '{option}'").df().sort_values('last_review').reset_index()
+    st.write(exercice)
+    ANSWER_D = exercice.loc[0, 'exercices_name']
+    st.write(ANSWER_D)
+    with open(f'answers/{ANSWER_D}.sql') as f:
+        answer = f.read()
+    solution_df: DataFrame = con.execute(answer).df()
+
+st.header("enter your code here: ")
 query = st.text_area(label="entrez votre code", key="user input")
 if query:
-    result = duckdb.query(query).df()
+    result = con.execute(query).df()
     st.dataframe(result)
+    st.write("result:", result)
     if len(result.columns) != len(solution_df.columns):
         st.write("wrong number of columns")
         st.dataframe(result)
@@ -47,24 +53,17 @@ if query:
     if nb_lignes_difference != 0:
         f"Result has {nb_lignes_difference} lignes difference with the solution"
 
-st.write(beverage)
-with st.sidebar:
-    option = st.selectbox(
-        "what would you like to do?",
-        ("Joins", "GroupBy", "Windows Funtions"),
-        index=None,
-        placeholder="Choose your option",
-    )
-    st.write("You selected:", option)
-
-
 tab2, tab3 = st.tabs(["Tables", "Solution"])
-
 with tab2:
-    st.write("table : beverages")
-    st.dataframe(beverage)
-    st.write("table : food_items")
-    st.dataframe(food_items)
-    st.write("expected:", solution_df)
+    st.write(exercice.loc[0, 'tables'])
+    #excercice_tables = exercice.loc[0, "tables"]
+    excercice_tables = [t for row in exercice["tables"] for t in row]
+    print(excercice_tables)
+    for table in excercice_tables:
+        st.write(f"table : {table}")
+        df_table = con.execute(f"select * from {table}").df()
+        st.dataframe(df_table)
 with tab3:
-    st.write(solution_df)
+    st.write(answer)
+
+
